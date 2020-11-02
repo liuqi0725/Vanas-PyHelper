@@ -9,7 +9,7 @@ with open('README.rst') as f:
     DESC = f.read()
 
 setup(name='VanasPyHelper',
-      version="0.2",
+      version="0.2.1",
       description="Vanas py 通用核心帮助工具包",
       long_description=DESC,
       packages=find_packages(),
