@@ -10,7 +10,8 @@
 # @Desc     : request 相关工具包
 # -------------------------------------------------------------------------------
 
-import random,enum
+import random,enum,json
+import requests
 from werkzeug.exceptions import HTTPException
 from flask import abort,jsonify
 from vanaspyhelper.error.RequestError import ProxyTypeNotSupport
@@ -157,3 +158,42 @@ def __json_res(success:bool,data:dict={},desc:str="",error_code:int=400, trace:s
         result = {'success': int_success, 'code': error_code, 'description': desc , 'trace': trace}
 
     return result
+
+
+def vanas_get_token(client_id:str ,
+                    client_secret:str,
+                    url:str="https://token.35liuqi.com/oauth/token",
+                    grant_type:str="client_credentials" , )->dict:
+    """
+    vanas 获取 token
+    :param client_id: 客户端 id，固定值，由研发人员签发
+    :param client_secret: 客户端 secret，由研发人员签发
+    :param url:
+    :param grant_type: client_credentials 或 password 推荐 client_credentials
+    :return: 根据服务端 doc 返回
+    """
+    data = {'grant_type':grant_type,'client_id':client_id,'client_secret':client_secret}
+    response = requests.post(url,data)
+    response.raise_for_status()
+    if response is not None:
+        return response.json()
+
+
+def vanas_verify_token(access_token:str ,
+                       client_id:str ,
+                       url="https://token.35liuqi.com/verify_token")->dict:
+    """
+    vanas 验证 token
+    :param access_token: token
+    :param client_id: 客户端 id，固定值，由研发人员签发
+    :param url:
+    :return: 根据服务端 doc 返回
+    """
+    data = {'access_token':access_token,'client_id':client_id}
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response.raise_for_status()
+    if response is not None:
+        return response.json()
