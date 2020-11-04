@@ -117,7 +117,7 @@ def get_user_agent_remote(user_agent:list=None):
     :return:
     """
 
-    if not user_agent:
+    if user_agent is not None:
         return random.choice(user_agent)
 
     return random.choice(__user_agent_remote_list)
@@ -129,7 +129,7 @@ def get_user_agent_mobile(user_agent:list=None):
     :return:
     """
 
-    if not user_agent:
+    if user_agent is not None:
         return random.choice(user_agent)
     return random.choice(__user_agent_mobile_list)
 
