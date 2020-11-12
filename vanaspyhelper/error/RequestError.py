@@ -32,3 +32,8 @@ class DownloadTimeout(RequestException):
 
     def __init__(self,url:str):
         super(DownloadTimeout,self).__init__("下载文件错误 URL=[{}]".format(url))
+
+class SendRequestError(RequestException):
+
+    def __init__(self, url: str , ex:Exception):
+        super(SendRequestError, self).__init__("下载文件错误 URL=[{}]".format(url) , ex)

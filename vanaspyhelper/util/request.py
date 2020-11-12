@@ -14,9 +14,7 @@ import random,enum,json
 import requests
 from werkzeug.exceptions import HTTPException
 from flask import abort,jsonify
-from vanaspyhelper.error.RequestError import ProxyTypeNotSupport,RequestResolverError
-
-
+from vanaspyhelper.error.RequestError import ProxyTypeNotSupport, RequestResolverError, SendRequestError
 
 __user_agent_remote_list = [
         "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
@@ -205,7 +203,43 @@ def do_post(url:str, headers:dict , proxies:dict=None, stream:bool=False, timeou
     except Exception:
         raise RequestResolverError(url=url)
 
+def request_json(url, data:dict, client_id:str=None, access_token:str=None):
+    """
+    发送 json 请求
+    :param url:
+    :param data:
+    :param client_id: 每个客户端独有
+    :param access_token: 访问 token 从 Vanas-token-manager 获取
+    :return:
+    """
+    headers = {
+        "Content-Type": "application/json",
+        "access_token": access_token,
+        "client_id": client_id,
+    }
 
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response.raise_for_status()
+        if response is not None:
+            return response.json()
+    except Exception as e:
+        raise SendRequestError(url,e)
+
+def request_form(url, data:dict):
+    """
+    发送 form 表单请求
+    :param url:
+    :param data:
+    :return: json
+    """
+    try:
+        response = requests.post(url, data)
+        response.raise_for_status()
+        if response is not None:
+            return response.json()
+    except Exception as e:
+        raise SendRequestError(url , e)
 
 
 def E400(desc, code=400):
@@ -299,7 +333,7 @@ def __json_res(success:bool,data:dict={},desc:str="",error_code:int=400, trace:s
 def vanas_get_token(client_id:str ,
                     client_secret:str,
                     url:str="https://token.35liuqi.com/oauth/token",
-                    grant_type:str="client_credentials" , )->dict:
+                    grant_type:str="client_credentials" )->dict:
     """
     vanas 获取 token
     :param client_id: 客户端 id，固定值，由研发人员签发
@@ -309,11 +343,7 @@ def vanas_get_token(client_id:str ,
     :return: 根据服务端 doc 返回
     """
     data = {'grant_type':grant_type,'client_id':client_id,'client_secret':client_secret}
-    response = requests.post(url,data)
-    response.raise_for_status()
-    if response is not None:
-        return response.json()
-
+    return request_form(url, data)
 
 def vanas_verify_token(access_token:str ,
                        client_id:str ,
@@ -326,10 +356,4 @@ def vanas_verify_token(access_token:str ,
     :return: 根据服务端 doc 返回
     """
     data = {'access_token':access_token,'client_id':client_id}
-    headers = {
-        "Content-Type": "application/json"
-    }
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-    response.raise_for_status()
-    if response is not None:
-        return response.json()
+    return request_json(url,data,client_id,access_token)
