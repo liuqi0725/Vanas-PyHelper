@@ -1,5 +1,6 @@
-PyYAML
-werkzeug
-flask
+chardet
+pycrypto
 Pillow
-Crypto
+pyyaml
+konfig
+werkzeug
