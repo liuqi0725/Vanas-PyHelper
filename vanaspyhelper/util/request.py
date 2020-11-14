@@ -226,7 +226,7 @@ def request_json(url, data:dict, client_id:str=None, access_token:str=None):
     except Exception as e:
         raise SendRequestError(url,e)
 
-def request_form(url, data:dict):
+def request_form(url, data:dict , client_id:str=None, access_token:str=None):
     """
     发送 form 表单请求
     :param url:
@@ -234,7 +234,12 @@ def request_form(url, data:dict):
     :return: json
     """
     try:
-        response = requests.post(url, data)
+        headers = {
+            "access_token": access_token,
+            "client_id": client_id,
+        }
+
+        response = requests.post(url, headers=headers, data=data)
         response.raise_for_status()
         if response is not None:
             return response.json()
@@ -330,10 +335,9 @@ def __json_res(success:bool,data:dict={},desc:str="",error_code:int=400, trace:s
     return result
 
 
-def vanas_get_token(client_id:str ,
-                    client_secret:str,
+def vanas_get_token(client_id:str, signature:str,
                     url:str="https://token.35liuqi.com/oauth/token",
-                    grant_type:str="client_credentials" )->dict:
+                    grant_type:str="client_credentials")->dict:
     """
     vanas 获取 token
     :param client_id: 客户端 id，固定值，由研发人员签发
@@ -342,8 +346,11 @@ def vanas_get_token(client_id:str ,
     :param grant_type: client_credentials 或 password 推荐 client_credentials
     :return: 根据服务端 doc 返回
     """
-    data = {'grant_type':grant_type,'client_id':client_id,'client_secret':client_secret}
-    return request_form(url, data)
+    import time
+    timestamp = int(time.time())
+
+    data = {'grant_type': grant_type, 'client_id': client_id, 'signature': signature, "timestamp": timestamp}
+    return request_json(url, data)
 
 def vanas_verify_token(access_token:str ,
                        client_id:str ,
@@ -355,5 +362,5 @@ def vanas_verify_token(access_token:str ,
     :param url:
     :return: 根据服务端 doc 返回
     """
-    data = {'access_token':access_token,'client_id':client_id}
+    data = {'access_token': access_token, 'client_id': client_id}
     return request_json(url,data,client_id,access_token)
