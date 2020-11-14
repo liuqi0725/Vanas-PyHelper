@@ -12,6 +12,8 @@
 
 import os,yaml
 from PIL import Image
+from konfig import Config
+
 
 def makeDir(dirPath , exist_ok=False):
     """
@@ -89,3 +91,11 @@ def openYaml(path:str, encoding:str='utf-8')->dict:
             return cfg_d
         finally:
             f.close()
+
+def openIni(path:str)->Config:
+    """
+    读取 ini 文件
+    :param path:
+    :return:
+    """
+    return Config(path)

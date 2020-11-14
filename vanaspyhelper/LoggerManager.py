@@ -106,9 +106,9 @@ class Logger(object):
         """
 
         if self.log_prefix is None:
-            all_filename,error_filename = "all.log","error.log"
+            all_filename,error_filename = "info.log","error.log"
         else:
-            all_filename,error_filename = "{}-all.log".format(str(self.log_prefix)),"{}-error.log".format(str(self.log_prefix))
+            all_filename,error_filename = "{}-info.log".format(str(self.log_prefix)),"{}-error.log".format(str(self.log_prefix))
 
 
         # 定义 2 个 handler
@@ -123,13 +123,14 @@ class Logger(object):
                                                         backupCount=self.backupCount, encoding="utf-8")
         # 设置日志文件中的输出格式
         all_fileHandler.setFormatter(self.format_str)
+        all_fileHandler.setLevel(logging.INFO) # 指定日志级别，低于INFO级别的日志将被忽略
 
 
         error_fileHandler = handlers.TimedRotatingFileHandler(filename=err_filename, when=self.when, interval=self.interval,
                                                              backupCount=self.backupCount, encoding="utf-8")
         # 设置日志文件中的输出格式
         error_fileHandler.setFormatter(self.format_str)
-        error_fileHandler.setLevel(self.level_relations.get("error"))
+        error_fileHandler.setLevel(logging.WARN) # 指定日志级别，低于WARN级别的日志将被忽略
 
         # 将输出对象添加到logger中
         self.logger.addHandler(all_fileHandler)
