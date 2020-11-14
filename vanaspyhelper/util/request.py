@@ -335,7 +335,7 @@ def __json_res(success:bool,data:dict={},desc:str="",error_code:int=400, trace:s
     return result
 
 
-def vanas_get_token(client_id:str, signature:str,
+def vanas_get_token(client_id:str, client_secret_key:str,
                     url:str="https://token.35liuqi.com/oauth/token",
                     grant_type:str="client_credentials")->dict:
     """
@@ -347,8 +347,10 @@ def vanas_get_token(client_id:str, signature:str,
     :return: 根据服务端 doc 返回
     """
     import time
-    timestamp = int(time.time())
+    from vanaspyhelper.util.common import md5
 
+    timestamp = int(time.time())
+    signature = md5(client_secret_key + str(timestamp)).lower()
     data = {'grant_type': grant_type, 'client_id': client_id, 'signature': signature, "timestamp": timestamp}
     return request_json(url, data)
 
