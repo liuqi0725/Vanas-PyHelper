@@ -145,3 +145,4 @@ global log
 def init_global_logger(logdir:str , logname="DEFAULT_LOG", level="info" , log_prefix:str=None):
     global log
     log = Logger(logdir, logname=logname , level=level , log_prefix=log_prefix).getLogger()
+    return log
