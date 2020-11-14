@@ -89,3 +89,20 @@ def get_timestamp()->int:
     :return:
     """
     return int(time.time())
+
+def ascii_hex(len:int=16):
+    """
+    :param len: 2 的倍数
+    :return: bytes
+    """
+    import os,binascii
+    return binascii.hexlify(os.urandom(len))
+
+def ascii_hex_str(len:int=16, encoding:str="utf-8"):
+    """
+    :param len: 2 的倍数
+    :return: str
+    """
+    data = ascii_hex(len)
+    data = str(data, encoding=encoding)
+    return data
