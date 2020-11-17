@@ -1,6 +1,4 @@
 chardet
-pycrypto
 Pillow
 pyyaml
 konfig
-werkzeug
