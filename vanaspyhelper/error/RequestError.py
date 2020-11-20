@@ -37,3 +37,17 @@ class SendRequestError(RequestException):
 
     def __init__(self, url: str , ex:Exception):
         super(SendRequestError, self).__init__("下载文件错误 URL=[{}]".format(url) , ex)
+
+
+
+class WrongLocalVerifyTokenInsError(Exception):
+
+    '''错误的本地验证 token 实体'''
+
+    def __init__(self, ins):
+        msg = "\n 本地验证 token 实体错误！！ @token_required 装饰器只接收 VerifyTokenLocal 实例，但是您传入的是: {} 。" \
+              "\n 本地验证 token 说明：" \
+              "\n   如果您在使用 @token_required 装饰器时，需要调用您服务的 token 验证方法。" \
+              "\n   请在您的服务中用 from vanaspyhelper.wraps.token import VerifyTokenLocal 导入 `VerifyTokenLocal` 抽象类，并实现 verify 函数。" \
+              "\n   当您服务的验证方法失败时，仍然会通过 Vanas-Token 服务器进行验证。".format(str(type(ins)))
+        super(WrongLocalVerifyTokenInsError, self).__init__(msg)
