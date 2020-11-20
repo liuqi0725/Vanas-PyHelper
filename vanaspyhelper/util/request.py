@@ -203,7 +203,7 @@ def do_post(url:str, headers:dict , proxies:dict=None, stream:bool=False, timeou
     except Exception:
         raise RequestResolverError(url=url)
 
-def request_json(url, data:dict, client_id:str=None, access_token:str=None):
+def request_json(url, data:dict=None, client_id:str=None, access_token:str=None, method:str="POST"):
     """
     发送 json 请求
     :param url:
@@ -219,7 +219,14 @@ def request_json(url, data:dict, client_id:str=None, access_token:str=None):
     }
 
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response = None
+        if method == "POST":
+            if data is not None:
+                data = json.dumps(data)
+            response = requests.post(url, headers=headers, data=data)
+        elif method == "GET":
+            response = requests.get(url, headers=headers)
+
         response.raise_for_status()
         if response is not None:
             return response.json()
