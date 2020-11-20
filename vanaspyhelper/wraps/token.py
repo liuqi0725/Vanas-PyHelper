@@ -38,6 +38,11 @@ class VerifyTokenLocal(ABCMeta):
 
         """
 
+    def upgrade(self,client_id, access_token):
+        """
+            验证 token 本地方法通过后，证明客户端传递的是正确的并且是新的 token。通知保存
+        """
+
 def token_required(local_verify_token_ins:VerifyTokenLocal=None):
 
     """验证 token 的装饰器
@@ -68,13 +73,23 @@ def token_required(local_verify_token_ins:VerifyTokenLocal=None):
                         raise WrongLocalVerifyTokenInsError(local_verify_token_ins)
 
                     # 本地验证成功，直接进入函数
-                    if local_verify_token_ins.verify(token, client_id):
+                    if local_verify_token_ins.verify(client_id=client_id,access_token=token):
                         return func(*args, **kwargs)
 
                 # 本地验证失败，采用服务器验证
                 verify_token_res = vanas_verify_token(token, client_id)
                 if not isTokenSuccess(verify_token_res):
                     return render_json(verify_token_res)
+
+                # 通知本地 保存
+                if local_verify_token_ins is not None:
+
+                    if not isinstance(local_verify_token_ins,VerifyTokenLocal):
+                        raise WrongLocalVerifyTokenInsError(local_verify_token_ins)
+
+                    # 本地验证成功，通知本地 保存
+                    if local_verify_token_ins.verify(token, client_id):
+                        local_verify_token_ins.upgrade(client_id=client_id, access_token=token)
 
                 return func(*args, **kwargs)
 
