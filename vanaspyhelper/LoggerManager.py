@@ -69,7 +69,7 @@ class Logger(object):
         # 创建日志对象
         self.logger = logging.getLogger(logname)
         # 设置日志级别
-        # self.logger.setLevel(self.level_relations.get(level))
+        self.logger.setLevel(self.level_relations.get(level))
 
         # 初始化 handler
         self._init_console_logHandler(self.level_relations.get(self.level))
@@ -107,23 +107,23 @@ class Logger(object):
         """
 
         if self.log_prefix is None:
-            all_filename,error_filename = "out.log","error.log"
+            out_filename,error_filename = "out.log","error.log"
         else:
-            all_filename,error_filename = "{}-out.log".format(str(self.log_prefix)),"{}-error.log".format(str(self.log_prefix))
+            out_filename,error_filename = "{}-out.log".format(str(self.log_prefix)),"{}-error.log".format(str(self.log_prefix))
 
         # 定义 2 个 handler
         # 输出 用户定义的级别以上的日志
-        all_filename = os.path.join(self.logdir, all_filename)
+        out_filename = os.path.join(self.logdir, out_filename)
         # 输出 error 以上级别的日志
         err_filename = os.path.join(self.logdir, error_filename)
 
         # 设置日志输出到文件（指定间隔时间自动生成文件的处理器  --按日生成）
         # filename：日志文件名，interval：时间间隔，when：间隔的时间单位， backupCount：备份文件个数，若超过这个数就会自动删除
-        all_fileHandler = handlers.TimedRotatingFileHandler(filename=all_filename, when=self.when, interval=self.interval,
+        out_fileHandler = handlers.TimedRotatingFileHandler(filename=out_filename, when=self.when, interval=self.interval,
                                                         backupCount=self.backupCount, encoding="utf-8")
         # 设置日志文件中的输出格式
-        all_fileHandler.setFormatter(self.format_str)
-        all_fileHandler.setLevel(logging.INFO) # 指定日志级别，低于INFO级别的日志将被忽略
+        out_fileHandler.setFormatter(self.format_str)
+        out_fileHandler.setLevel(logging.INFO) # 指定日志级别，低于INFO级别的日志将被忽略
 
 
         error_fileHandler = handlers.TimedRotatingFileHandler(filename=err_filename, when=self.when, interval=self.interval,
@@ -133,7 +133,7 @@ class Logger(object):
         error_fileHandler.setLevel(logging.WARN) # 指定日志级别，低于WARN级别的日志将被忽略
 
         # 将输出对象添加到logger中
-        self.logger.addHandler(all_fileHandler)
+        self.logger.addHandler(out_fileHandler)
         self.logger.addHandler(error_fileHandler)
 
     def getLogger(self):
