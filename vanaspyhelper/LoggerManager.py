@@ -69,10 +69,10 @@ class Logger(object):
         # 创建日志对象
         self.logger = logging.getLogger(logname)
         # 设置日志级别
-        self.logger.setLevel(self.level_relations.get(level))
+        # self.logger.setLevel(self.level_relations.get(level))
 
         # 初始化 handler
-        self._init_console_logHandler()
+        self._init_console_logHandler(self.level_relations.get(self.level))
         self._init_file_logHandler()
 
     def _init_logpath(self):
@@ -86,7 +86,7 @@ class Logger(object):
         except:
             raise
 
-    def _init_console_logHandler(self):
+    def _init_console_logHandler(self,level):
         """
         初始化控制台日志
         :return:
@@ -95,6 +95,7 @@ class Logger(object):
         streamHandler = logging.StreamHandler()
         # 设置控制台中输出日志格式
         streamHandler.setFormatter(self.format_str)
+        streamHandler.setLevel(level)
 
         # 将输出对象添加到logger中
         self.logger.addHandler(streamHandler)
@@ -106,10 +107,9 @@ class Logger(object):
         """
 
         if self.log_prefix is None:
-            all_filename,error_filename = "info.log","error.log"
+            all_filename,error_filename = "out.log","error.log"
         else:
-            all_filename,error_filename = "{}-info.log".format(str(self.log_prefix)),"{}-error.log".format(str(self.log_prefix))
-
+            all_filename,error_filename = "{}-out.log".format(str(self.log_prefix)),"{}-error.log".format(str(self.log_prefix))
 
         # 定义 2 个 handler
         # 输出 用户定义的级别以上的日志
