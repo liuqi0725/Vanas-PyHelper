@@ -10,23 +10,12 @@
 # @Desc     :  token 装饰器
 # -------------------------------------------------------------------------------
 
-import functools
-from abc import ABCMeta,ABC,abstractmethod
-
+from abc import ABC,abstractmethod
 from vanaspyhelper.error.RequestError import WrongLocalVerifyTokenInsError
 
 
-def isTokenSuccess(verify_token_res:dict):
-    """
-    验证 token 是否合法
-    :param verify_token_res:
-    :return:
-    """
-    if verify_token_res["success"] == int(False):
-        return False
-    return True
-
 class VerifyTokenLocal(ABC):
+    '''本地验证抽象类，由第三方实现'''
 
     @abstractmethod
     def verify(self, client_id, access_token)->bool:
@@ -43,12 +32,39 @@ class VerifyTokenLocal(ABC):
             验证 token 本地方法通过后，证明客户端传递的是正确的并且是新的 token。通知保存
         """
 
-def token_required(local_verify_token_ins:VerifyTokenLocal=None):
+
+def __isTokenSuccess(verify_token_res:dict):
+    """
+    验证 token 是否合法
+    :param verify_token_res:
+    :return:
+    """
+    if verify_token_res["success"] == int(False):
+        return False
+    return True
+
+
+def __need_local_verify(ins:VerifyTokenLocal=None):
+    """
+    ins 是否存在，是否 VerifyTokenLocal 对象
+    :param ins:
+    :return:
+    """
+    if ins is None:
+        return False    # 为 None， 不需要本地验证
+
+    if not isinstance(ins, VerifyTokenLocal):   # 有值，但是不是 VerifyTokenLocal 实体，抛出异常
+        raise WrongLocalVerifyTokenInsError(ins)
+
+    return True         # 以上都满足， 返回 True 需要本地验证
+
+
+def token_required(ins:VerifyTokenLocal=None):
 
     """验证 token 的装饰器
 
         args :
-            local_verify_token_ins: 本地验证实现类实例
+            ins: 本地验证实现类实例
 
                 #. 默认 None ， 通过 vanas-token 服务器验证
                 #. 本地验证是为了避免少的与 vanas-token 服务器的交互所采用的方式
@@ -56,50 +72,39 @@ def token_required(local_verify_token_ins:VerifyTokenLocal=None):
                 #. 采用本地验证，服务需要实现 VanasPyHelper.wraps.token.VerifyTokenLocal 抽象类中的 verify 函数
     """
 
-    def verify(func):
+    def decorate(func):
         def inner(*args, **kwargs):
 
             from flask import request
             from vanaspyhelper.util.request import E400, vanas_verify_token, render_json
 
             try:
-                # token = request.headers['access_token']
-                # client_id = request.headers['client_id']
-                token = "11"
-                client_id = "2"
+                _access_token = request.headers['access_token']
+                _client_id = request.headers['client_id']
 
-                # 查看 redis 中是否有该访问 web 的 token，避免反复与 token 服务器交互
-                if local_verify_token_ins is not None:
+                # 如果需要本地验证，并且本地验证成功. 直接返回函数结果。 避免反复与 token server 交互
+                if __need_local_verify(ins) and ins.verify(client_id=_client_id,access_token=_access_token):
+                    # 返回函数返回值
+                    return func(*args, **kwargs)
 
-                    if not isinstance(local_verify_token_ins,VerifyTokenLocal):
-                        raise WrongLocalVerifyTokenInsError(local_verify_token_ins)
+                # 不需要本地验证 或 本地验证失败，采用服务器验证
+                _verify_token_result = vanas_verify_token(client_id=_client_id,access_token=_access_token)
+                if not __isTokenSuccess(_verify_token_result):
+                    # 服务器验证失败 , 以 json 数据代替被修饰的函数返回值返回给请求方
+                    return render_json(_verify_token_result)
 
-                    # 本地验证成功，直接进入函数
-                    if local_verify_token_ins.verify(client_id=client_id,access_token=token):
-                        return func(*args, **kwargs)
+                # 服务器验证成功， 如果需要本地验证，则代表 access_token 已改变，通知客户端修改
+                if __need_local_verify(ins):
+                    ins.upgrade(client_id=_client_id, access_token=_access_token)
 
-                # 本地验证失败，采用服务器验证
-                verify_token_res = vanas_verify_token(token, client_id)
-                if not isTokenSuccess(verify_token_res):
-                    return render_json(verify_token_res)
-
-                # 通知本地 保存
-                if local_verify_token_ins is not None:
-
-                    if not isinstance(local_verify_token_ins,VerifyTokenLocal):
-                        raise WrongLocalVerifyTokenInsError(local_verify_token_ins)
-
-                    # 本地验证成功，通知本地 保存
-                    if local_verify_token_ins.verify(token, client_id):
-                        local_verify_token_ins.upgrade(client_id=client_id, access_token=token)
-
+                # 返回函数返回值
                 return func(*args, **kwargs)
 
-            # 参数不对，请求没带Token
             except KeyError:
+                # 参数不对，请求没带Token
                 return E400("请求 Header 中没有 access_token 和 client_id", code=3001)
         return inner
-    return verify
+    return decorate
 
 
 # def token_required(func):
