@@ -11,7 +11,7 @@
 # -------------------------------------------------------------------------------
 
 import functools
-from abc import ABCMeta,abstractmethod
+from abc import ABCMeta,ABC,abstractmethod
 
 from vanaspyhelper.error.RequestError import WrongLocalVerifyTokenInsError
 
@@ -26,7 +26,7 @@ def isTokenSuccess(verify_token_res:dict):
         return False
     return True
 
-class VerifyTokenLocal(ABCMeta):
+class VerifyTokenLocal(ABC):
 
     @abstractmethod
     def verify(self, client_id, access_token)->bool:
@@ -63,8 +63,10 @@ def token_required(local_verify_token_ins:VerifyTokenLocal=None):
             from vanaspyhelper.util.request import E400, vanas_verify_token, render_json
 
             try:
-                token = request.headers['access_token']
-                client_id = request.headers['client_id']
+                # token = request.headers['access_token']
+                # client_id = request.headers['client_id']
+                token = "11"
+                client_id = "2"
 
                 # 查看 redis 中是否有该访问 web 的 token，避免反复与 token 服务器交互
                 if local_verify_token_ins is not None:
