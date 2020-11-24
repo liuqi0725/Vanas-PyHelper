@@ -14,7 +14,8 @@ import random,enum,json
 import requests
 from werkzeug.exceptions import HTTPException
 from flask import abort,jsonify
-from vanaspyhelper.error.RequestError import ProxyTypeNotSupport, RequestResolverError, SendRequestError
+from vanaspyhelper.error.RequestError import ProxyTypeNotSupport, RequestResolverError, SendRequestError, \
+    ConnectionRefused
 
 __user_agent_remote_list = [
         "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
@@ -165,7 +166,13 @@ def do_get(url:str, headers:dict , proxies:dict=None, stream:bool=False, timeout
     """
 
     try:
+        s = requests.session()
+        s.headers = headers
+        s.keep_alive = False
         if proxies is not None:
+            url = "https://vayh.msxf.com/"
+            s.proxies = proxies
+
             response = requests.get(url, headers=headers, proxies=proxies, stream=stream,timeout=timeout)
         else:
             response = requests.get(url, headers=headers, stream=stream, timeout=timeout)
@@ -174,7 +181,8 @@ def do_get(url:str, headers:dict , proxies:dict=None, stream:bool=False, timeout
         response.raise_for_status()
 
         return response
-
+    except requests.exceptions.ConnectionError:
+        raise ConnectionRefused()
     except Exception:
         raise RequestResolverError(url=url)
 
@@ -200,6 +208,8 @@ def do_post(url:str, headers:dict , proxies:dict=None, stream:bool=False, timeou
 
         return response
 
+    except requests.exceptions.ConnectionError:
+        raise ConnectionRefused()
     except Exception:
         raise RequestResolverError(url=url)
 

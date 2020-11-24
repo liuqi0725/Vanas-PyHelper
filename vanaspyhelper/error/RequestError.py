@@ -13,6 +13,10 @@
 class RequestException(Exception):
     pass
 
+
+class ConnectionRefused(RequestException):
+    pass
+
 class ProxyTypeNotSupport(RequestException):
 
     def __init__(self , type):
