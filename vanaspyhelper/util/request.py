@@ -166,13 +166,11 @@ def do_get(url:str, headers:dict , proxies:dict=None, stream:bool=False, timeout
     """
 
     try:
-        s = requests.session()
-        s.headers = headers
-        s.keep_alive = False
+        # s = requests.session()
+        # s.headers = headers
+        # s.keep_alive = False
         if proxies is not None:
-            url = "https://vayh.msxf.com/"
-            s.proxies = proxies
-
+            # s.proxies = proxies
             response = requests.get(url, headers=headers, proxies=proxies, stream=stream,timeout=timeout)
         else:
             response = requests.get(url, headers=headers, stream=stream, timeout=timeout)
