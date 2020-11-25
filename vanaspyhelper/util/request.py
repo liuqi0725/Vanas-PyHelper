@@ -132,22 +132,21 @@ def get_user_agent_mobile(user_agent:list=None):
         return random.choice(user_agent)
     return random.choice(__user_agent_mobile_list)
 
-def build_proxies(ip:str="127.0.0.1", port:int=1080 , type:str="http"):
+def build_proxies(address:str="127.0.0.1:10000", type:str="http"):
     """
     创建代理配置
-    :param ip: 代理 ip 默认 127.0.0.1
-    :param port:  代理端口， 默认 1080
+    :param address: 代理地址 ip:port 默认 127.0.0.1:10000
     :param type:  代理类型， 默认 http,  备选项 socks5 。  https 启用代理均会添加
     :return:
     """
     proxies = {}
 
     if type.lower() == 'socks5':
-        proxies['http'] = 'socks5://{}:{}'.format(ip,port)
-        proxies['https'] = 'socks5://{}:{}'.format(ip,port)
+        proxies['http'] = 'socks5://{}'.format(address)
+        proxies['https'] = 'socks5://{}'.format(address)
     elif type.lower() == 'http':
-        proxies['http'] = 'http://{}:{}'.format(ip,port)
-        proxies['https'] = 'https://{}:{}'.format(ip,port)
+        proxies['http'] = 'http://{}'.format(address)
+        proxies['https'] = 'https://{}'.format(address)
     else:
         raise ProxyTypeNotSupport(type)
 
